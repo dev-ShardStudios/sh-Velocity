@@ -199,3 +199,30 @@ map = "Velocity"
 
 # Whether plugins should be shown in query response by default or not
 show-plugins = false
+
+[legacy-clients]
+# Lets clients older than 1.13 join while player-info-forwarding-mode is "modern", and
+# keeps them on the servers listed in [legacy-clients.servers]. When false, nothing
+# below has any effect.
+enabled = false
+# Protocols below 1.13 that are admitted. 47 covers 1.8 to 1.8.9.
+protocols = [47]
+# Admitted clients join the least populated of these servers. Each one must also be
+# listed in [legacy-clients.servers].
+lobbies = []
+# Only let premium (online-mode) accounts in with these clients.
+premium-only = true
+# BungeeGuard token sent to the servers set to "bungeeguard". It must differ from
+# forwarding-secret-file, and a random one is created if the file is missing.
+bungeeguard-secret-file = "forwarding-legacy.secret"
+
+# Servers reserved to admitted clients, with their forwarding: "bungeeguard" or
+# "legacy". Example: lobby-189 = "bungeeguard"
+[legacy-clients.servers]
+
+# Messages for players, in MiniMessage format.
+[legacy-clients.messages]
+no-lobby = "<red>The 1.8.9 lobby is not available right now. Try again in a moment."
+server-denied = "<red>This server is not available on 1.8.9."
+modern-denied = "<red>This server can only be joined with Minecraft 1.8.9."
+premium-only = "<red>1.8.9 is currently open to premium accounts only."

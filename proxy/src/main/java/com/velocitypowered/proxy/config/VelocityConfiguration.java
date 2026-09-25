@@ -29,6 +29,7 @@ import com.velocitypowered.api.util.Favicon;
 import com.velocitypowered.proxy.config.migration.ConfigurationMigration;
 import com.velocitypowered.proxy.config.migration.ForwardingMigration;
 import com.velocitypowered.proxy.config.migration.KeyAuthenticationMigration;
+import com.velocitypowered.proxy.config.migration.LegacyClientsMigration;
 import com.velocitypowered.proxy.config.migration.MiniMessageTranslationsMigration;
 import com.velocitypowered.proxy.config.migration.MotdMigration;
 import com.velocitypowered.proxy.config.migration.PacketLimiterMigration;
@@ -98,6 +99,7 @@ public class VelocityConfiguration implements ProxyConfig {
   private boolean forceKeyAuthentication = true; // Added in 1.19
   @Expose
   private PacketLimiterConfig packetLimiterConfig = PacketLimiterConfig.DEFAULT;
+  private LegacyClientsConfig legacyClients = LegacyClientsConfig.disabled();
 
   private VelocityConfiguration(Servers servers, ForcedHosts forcedHosts, Advanced advanced,
       Query query, Metrics metrics) {
@@ -114,7 +116,8 @@ public class VelocityConfiguration implements ProxyConfig {
       boolean onlineModeKickExistingPlayers, PingPassthroughMode pingPassthrough,
       boolean samplePlayersInPing, boolean enablePlayerAddressLogging, Servers servers,
       ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics,
-      boolean forceKeyAuthentication, PacketLimiterConfig packetLimiterConfig) {
+      boolean forceKeyAuthentication, PacketLimiterConfig packetLimiterConfig,
+      LegacyClientsConfig legacyClients) {
     this.bind = bind;
     this.motd = motd;
     this.showMaxPlayers = showMaxPlayers;
@@ -134,6 +137,7 @@ public class VelocityConfiguration implements ProxyConfig {
     this.metrics = metrics;
     this.forceKeyAuthentication = forceKeyAuthentication;
     this.packetLimiterConfig = packetLimiterConfig;
+    this.legacyClients = legacyClients;
   }
 
   /**
@@ -311,6 +315,21 @@ public class VelocityConfiguration implements ProxyConfig {
 
   public byte[] getForwardingSecret() {
     return forwardingSecret.clone();
+  }
+
+  public PlayerInfoForwarding getPlayerInfoForwardingMode(String serverName) {
+    final PlayerInfoForwarding mode = legacyClients.getForwardingMode(serverName);
+    return mode != null ? mode : playerInfoForwardingMode;
+  }
+
+  public byte[] getForwardingSecret(String serverName) {
+    return legacyClients.isLegacyServer(serverName)
+        ? legacyClients.getBungeeGuardSecret()
+        : getForwardingSecret();
+  }
+
+  public LegacyClientsConfig getLegacyClients() {
+    return legacyClients;
   }
 
   @Override
@@ -516,6 +535,7 @@ public class VelocityConfiguration implements ProxyConfig {
           new TransferIntegrationMigration(),
           new PacketLimiterMigration(),
           new PingPassthroughMigration(),
+          new LegacyClientsMigration(),
       };
 
       for (final ConfigurationMigration migration : migrations) {
@@ -580,6 +600,10 @@ public class VelocityConfiguration implements ProxyConfig {
         throw new RuntimeException("The forwarding-secret file must not be empty.");
       }
 
+      final Servers servers = new Servers(serversConfig);
+      final LegacyClientsConfig legacyClients = LegacyClientsConfig.read(
+          config.get("legacy-clients"), servers.getServers().keySet(), forwardingSecret);
+
       return new VelocityConfiguration(
               bind,
               motd,
@@ -593,13 +617,14 @@ public class VelocityConfiguration implements ProxyConfig {
               pingPassthrough,
               samplePlayersInPing,
               enablePlayerAddressLogging,
-              new Servers(serversConfig),
+              servers,
               new ForcedHosts(forcedHostsConfig),
               new Advanced(advancedConfig),
               new Query(queryConfig),
               new Metrics(metricsConfig),
               forceKeyAuthentication,
-              packetLimiterConfig
+              packetLimiterConfig,
+              legacyClients
       );
     }
   }
