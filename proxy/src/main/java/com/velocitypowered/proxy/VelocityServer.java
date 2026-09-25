@@ -48,6 +48,7 @@ import com.velocitypowered.proxy.command.builtin.ShutdownCommand;
 import com.velocitypowered.proxy.command.builtin.VelocityCommand;
 import com.velocitypowered.proxy.config.VelocityConfiguration;
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer;
+import com.velocitypowered.proxy.connection.legacy.LegacyClientsListener;
 import com.velocitypowered.proxy.connection.player.resourcepack.VelocityResourcePackInfo;
 import com.velocitypowered.proxy.connection.util.ServerListPingHandler;
 import com.velocitypowered.proxy.console.VelocityConsole;
@@ -307,6 +308,8 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
     ipAttemptLimiter = Ratelimiters.createWithMilliseconds(configuration.getLoginRatelimit());
     commandRateLimiter = Ratelimiters.createWithMilliseconds(configuration.getCommandRatelimit());
     tabCompleteRateLimiter = Ratelimiters.createWithMilliseconds(configuration.getTabCompleteRatelimit());
+    eventManager.register(VelocityVirtualPlugin.INSTANCE,
+        new LegacyClientsListener(this, () -> getConfiguration().getLegacyClients()));
     loadPlugins();
 
     // Go ahead and fire the proxy initialization event. We block since plugins should have a chance
