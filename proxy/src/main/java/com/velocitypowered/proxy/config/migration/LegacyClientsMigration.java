@@ -27,7 +27,9 @@ public final class LegacyClientsMigration implements ConfigurationMigration {
     config.set("legacy-clients.lobbies", List.of());
     config.setComment("legacy-clients.lobbies",
         " Admitted clients join the least populated of these servers. Each one must also be\n"
-            + " listed in [legacy-clients.servers].");
+            + " listed in [legacy-clients.servers] with its forwarding, \"bungeeguard\" or \"legacy\":\n"
+            + "   [legacy-clients.servers]\n"
+            + "   lobby-189 = \"bungeeguard\"");
 
     config.set("legacy-clients.premium-only", true);
     config.setComment("legacy-clients.premium-only",
@@ -37,11 +39,6 @@ public final class LegacyClientsMigration implements ConfigurationMigration {
     config.setComment("legacy-clients.bungeeguard-secret-file",
         " BungeeGuard token sent to the servers set to \"bungeeguard\". It must differ from\n"
             + " forwarding-secret-file, and a random one is created if the file is missing.");
-
-    config.set("legacy-clients.servers", config.createSubConfig());
-    config.setComment("legacy-clients.servers",
-        " Servers reserved to admitted clients, with their forwarding: \"bungeeguard\" or\n"
-            + " \"legacy\". Example: lobby-189 = \"bungeeguard\"");
 
     LegacyClientsConfig.DEFAULT_MESSAGES.forEach((key, message) ->
         config.set(List.of("legacy-clients", "messages", key), message));

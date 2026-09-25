@@ -107,7 +107,7 @@ class VelocityConfigurationLegacyClientsTest {
     assertEquals(List.of(), parsed.get("legacy-clients.lobbies"));
     assertEquals(true, parsed.get("legacy-clients.premium-only"));
     assertEquals("forwarding-legacy.secret", parsed.get("legacy-clients.bungeeguard-secret-file"));
-    assertTrue(parsed.contains("legacy-clients.servers"));
+    assertFalse(migrated.contains("servers = {}"));
     assertEquals(LegacyClientsConfig.DEFAULT_MESSAGES.get("no-lobby"),
         parsed.get("legacy-clients.messages.no-lobby"));
     assertFalse(Files.exists(Path.of(LegacyClientsConfig.DEFAULT_SECRET_FILE)));
@@ -115,6 +115,23 @@ class VelocityConfigurationLegacyClientsTest {
     final VelocityConfiguration reread = VelocityConfiguration.read(configFile);
     assertFalse(reread.getLegacyClients().isEnabled());
     assertEquals(migrated, Files.readString(configFile));
+  }
+
+  @Test
+  void migratedSectionCanBeEnabledByEditingIt() throws IOException {
+    write("");
+    VelocityConfiguration.read(configFile);
+
+    final String edited = Files.readString(configFile)
+        .replace("enabled = false", "enabled = true")
+        .replace("lobbies = []", "lobbies = [\"eu-lobby-189-01\"]")
+        .replace("\"forwarding-legacy.secret\"", "\"" + path("forwarding-legacy.secret") + "\"")
+        + "\n[legacy-clients.servers]\neu-lobby-189-01 = \"bungeeguard\"\n";
+    Files.writeString(configFile, edited);
+    final VelocityConfiguration config = VelocityConfiguration.read(configFile);
+
+    assertTrue(config.getLegacyClients().isEnabled());
+    assertArrayEquals(LEGACY, config.getForwardingSecret("eu-lobby-189-01"));
   }
 
   @Test
