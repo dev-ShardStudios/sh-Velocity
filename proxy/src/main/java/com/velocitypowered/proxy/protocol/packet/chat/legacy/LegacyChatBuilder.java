@@ -20,6 +20,7 @@ package com.velocitypowered.proxy.protocol.packet.chat.legacy;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
+import com.velocitypowered.proxy.protocol.packet.chat.ObjectComponents;
 import com.velocitypowered.proxy.protocol.packet.chat.builder.ChatBuilderV2;
 import java.util.UUID;
 import net.kyori.adventure.identity.Identity;
@@ -38,8 +39,8 @@ public class LegacyChatBuilder extends ChatBuilderV2 {
         : senderIdentity.uuid()) : sender.getUniqueId();
     Component msg = component == null ? Component.text(message) : component;
 
-    return new LegacyChatPacket(ProtocolUtils.getJsonChatSerializer(version).serialize(msg), type.getId(),
-        identity);
+    return new LegacyChatPacket(ProtocolUtils.getJsonChatSerializer(version)
+        .serialize(ObjectComponents.forVersion(msg, version)), type.getId(), identity);
   }
 
   @Override

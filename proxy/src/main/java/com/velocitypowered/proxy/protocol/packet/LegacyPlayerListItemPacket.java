@@ -25,6 +25,7 @@ import com.velocitypowered.api.util.GameProfile;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
+import com.velocitypowered.proxy.protocol.packet.chat.ObjectComponents;
 import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.List;
@@ -168,7 +169,7 @@ public class LegacyPlayerListItemPacket implements MinecraftPacket {
     buf.writeBoolean(displayName != null);
     if (displayName != null) {
       ProtocolUtils.writeString(buf, ProtocolUtils.getJsonChatSerializer(version)
-          .serialize(displayName));
+          .serialize(ObjectComponents.forVersion(displayName, version)));
     }
   }
 

@@ -24,6 +24,7 @@ import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
 import com.velocitypowered.proxy.protocol.StateRegistry;
 import com.velocitypowered.proxy.protocol.packet.chat.ComponentHolder;
+import com.velocitypowered.proxy.protocol.packet.chat.ObjectComponents;
 import io.netty.buffer.ByteBuf;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -78,7 +79,12 @@ public class DisconnectPacket implements MinecraftPacket {
 
   public static DisconnectPacket create(Component component, ProtocolVersion version, StateRegistry state) {
     Preconditions.checkNotNull(component, "component");
-    return new DisconnectPacket(state, new ComponentHolder(state == StateRegistry.LOGIN
-            ? ProtocolVersion.MINECRAFT_1_20_2 : version, component));
+    if (state == StateRegistry.LOGIN) {
+      String json = ProtocolUtils.getJsonChatSerializer(ProtocolVersion.MINECRAFT_1_20_2)
+          .serialize(ObjectComponents.forVersion(component, version));
+      return new DisconnectPacket(state,
+          new ComponentHolder(ProtocolVersion.MINECRAFT_1_20_2, json));
+    }
+    return new DisconnectPacket(state, new ComponentHolder(version, component));
   }
 }

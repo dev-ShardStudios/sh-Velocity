@@ -18,6 +18,7 @@
 package com.velocitypowered.proxy.connection.client;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.proxy.VelocityServer;
 import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
@@ -27,8 +28,10 @@ import com.velocitypowered.proxy.protocol.packet.LegacyPingPacket;
 import com.velocitypowered.proxy.protocol.packet.StatusPingPacket;
 import com.velocitypowered.proxy.protocol.packet.StatusRequestPacket;
 import com.velocitypowered.proxy.protocol.packet.StatusResponsePacket;
+import com.velocitypowered.proxy.protocol.packet.chat.ObjectComponents;
 import com.velocitypowered.proxy.util.except.QuietRuntimeException;
 import io.netty.buffer.ByteBuf;
+import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -102,7 +105,7 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
               if (event.getResult().isAllowed()) {
                 final StringBuilder json = new StringBuilder();
                 VelocityServer.getPingGsonInstance(connection.getProtocolVersion())
-                        .toJson(event.getPing(), json);
+                        .toJson(forClient(event.getPing()), json);
                 connection.write(new StatusResponsePacket(json));
               } else {
                 connection.close();
@@ -114,6 +117,16 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
           return null;
         });
     return true;
+  }
+
+  private ServerPing forClient(ServerPing ping) {
+    Component description = ping.getDescriptionComponent();
+    if (description == null) {
+      return ping;
+    }
+    Component compatible = ObjectComponents.forVersion(description,
+        connection.getProtocolVersion());
+    return compatible == description ? ping : ping.asBuilder().description(compatible).build();
   }
 
   @Override

@@ -97,7 +97,8 @@ public class ComponentHolder {
 
   public String getJson() {
     if (json == null) {
-      json = ProtocolUtils.getJsonChatSerializer(version).serialize(getComponent());
+      json = ProtocolUtils.getJsonChatSerializer(version)
+          .serialize(ObjectComponents.forVersion(getComponent(), version));
     }
     return json;
   }
@@ -105,7 +106,8 @@ public class ComponentHolder {
   public BinaryTag getBinaryTag() {
     if (binaryTag == null) {
       // TODO: replace this with adventure-text-serializer-nbt
-      binaryTag = serialize(ProtocolUtils.getJsonChatSerializer(version).serializeToTree(getComponent()));
+      binaryTag = serialize(ProtocolUtils.getJsonChatSerializer(version)
+          .serializeToTree(ObjectComponents.forVersion(getComponent(), version)));
     }
     return binaryTag;
   }
