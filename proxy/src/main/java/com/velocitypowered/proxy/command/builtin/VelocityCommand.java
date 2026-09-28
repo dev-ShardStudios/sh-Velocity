@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.management.MBeanServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -161,14 +162,17 @@ public final class VelocityCommand {
           .decoration(TextDecoration.BOLD, true)
           .color(VELOCITY_COLOR)
           .append(Component.text()
-                  .content(version.getVersion())
-                  .decoration(TextDecoration.BOLD, false))
+              .content(version.getVersion())
+              .decoration(TextDecoration.BOLD, false))
+          .hoverEvent(Component.translatable("velocity.command.version-offer-copy-version"))
+          .clickEvent(ClickEvent.copyToClipboard(version.getName() + " "
+              + version.getVersion()))
           .build();
       final Component copyright = Component
           .translatable("velocity.command.version-copyright",
               Argument.string("vendor", version.getVendor()),
-                  Argument.string("name", version.getName()),
-                  Argument.component("year", Component.text(LocalDate.now().getYear())));
+              Argument.string("name", version.getName()),
+              Argument.component("year", Component.text(LocalDate.now().getYear())));
       source.sendMessage(velocity);
       source.sendMessage(copyright);
 
@@ -343,7 +347,7 @@ public final class VelocityCommand {
         // A single lookup of the heap dump generator method is performed on execution
         // to avoid assigning variables unnecessarily in case the user never executes the command
         if (heapGenerator == null || heapConsumer == null) {
-          javax.management.MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+          MBeanServer server = ManagementFactory.getPlatformMBeanServer();
           MethodHandles.Lookup lookup = MethodHandles.lookup();
           SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
           MethodType type;
