@@ -101,6 +101,7 @@ public class VelocityConfiguration implements ProxyConfig {
   @Expose
   private PacketLimiterConfig packetLimiterConfig = PacketLimiterConfig.DEFAULT;
   private LegacyClientsConfig legacyClients = LegacyClientsConfig.disabled();
+  private ShardClientConfig shardClient = ShardClientConfig.disabled();
 
   private VelocityConfiguration(Servers servers, ForcedHosts forcedHosts, Advanced advanced,
       Query query, Metrics metrics) {
@@ -118,7 +119,7 @@ public class VelocityConfiguration implements ProxyConfig {
       boolean samplePlayersInPing, boolean enablePlayerAddressLogging, Servers servers,
       ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics,
       boolean forceKeyAuthentication, PacketLimiterConfig packetLimiterConfig,
-      LegacyClientsConfig legacyClients) {
+      LegacyClientsConfig legacyClients, ShardClientConfig shardClient) {
     this.bind = bind;
     this.motd = motd;
     this.showMaxPlayers = showMaxPlayers;
@@ -139,6 +140,7 @@ public class VelocityConfiguration implements ProxyConfig {
     this.forceKeyAuthentication = forceKeyAuthentication;
     this.packetLimiterConfig = packetLimiterConfig;
     this.legacyClients = legacyClients;
+    this.shardClient = shardClient;
   }
 
   /**
@@ -331,6 +333,10 @@ public class VelocityConfiguration implements ProxyConfig {
 
   public LegacyClientsConfig getLegacyClients() {
     return legacyClients;
+  }
+
+  public ShardClientConfig getShardClient() {
+    return shardClient;
   }
 
   @Override
@@ -604,6 +610,7 @@ public class VelocityConfiguration implements ProxyConfig {
       final Servers servers = new Servers(serversConfig);
       final LegacyClientsConfig legacyClients = LegacyClientsConfig.read(
           config.get("legacy-clients"), servers.getServers().keySet(), forwardingSecret);
+      final ShardClientConfig shardClient = ShardClientConfig.read(config.get("shard-client"));
 
       return new VelocityConfiguration(
               bind,
@@ -625,7 +632,8 @@ public class VelocityConfiguration implements ProxyConfig {
               new Metrics(metricsConfig),
               forceKeyAuthentication,
               packetLimiterConfig,
-              legacyClients
+              legacyClients,
+              shardClient
       );
     }
   }

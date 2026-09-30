@@ -18,8 +18,11 @@
 package com.velocitypowered.proxy.connection.client;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.proxy.VelocityServer;
+import com.velocitypowered.proxy.config.LegacyClientsConfig;
+import com.velocitypowered.proxy.config.ShardClientConfig;
 import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.connection.util.VelocityInboundConnection;
@@ -43,6 +46,8 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
   private static final Logger logger = LogManager.getLogger(StatusSessionHandler.class);
   private static final QuietRuntimeException EXPECTED_AWAITING_REQUEST = new QuietRuntimeException(
       "Expected connection to be awaiting status request");
+  private static final int MAX_STATUS_LENGTH = 32767;
+  private static boolean warnedTooLong;
 
   private final VelocityServer server;
   private final MinecraftConnection connection;
@@ -106,6 +111,9 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
                 final StringBuilder json = new StringBuilder();
                 VelocityServer.getPingGsonInstance(connection.getProtocolVersion())
                         .toJson(forClient(event.getPing()), json);
+                withShardListing(json, connection.getProtocolVersion(),
+                    server.getConfiguration().getShardClient(),
+                    server.getConfiguration().getLegacyClients());
                 connection.write(new StatusResponsePacket(json));
               } else {
                 connection.close();
@@ -117,6 +125,28 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
           return null;
         });
     return true;
+  }
+
+  static void withShardListing(StringBuilder json, ProtocolVersion version,
+      ShardClientConfig shard, LegacyClientsConfig legacyClients) {
+    final String listing = shard.getJson();
+    if (listing == null || !legacyClients.admits(version)) {
+      return;
+    }
+    final int end = json.length() - 1;
+    if (end < 1 || json.charAt(end) != '}') {
+      return;
+    }
+    final String field = (json.charAt(end - 1) == '{' ? "" : ",") + "\"shard\":" + listing;
+    if (json.length() + field.length() > MAX_STATUS_LENGTH) {
+      if (!warnedTooLong) {
+        warnedTooLong = true;
+        logger.warn("The status response with [shard-client] would pass {} characters, which 1.8 "
+            + "clients cannot read: it goes out without it", MAX_STATUS_LENGTH);
+      }
+      return;
+    }
+    json.insert(end, field);
   }
 
   private ServerPing forClient(ServerPing ping) {
