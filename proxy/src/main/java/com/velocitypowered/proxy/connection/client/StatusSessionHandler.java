@@ -34,6 +34,7 @@ import com.velocitypowered.proxy.protocol.packet.StatusResponsePacket;
 import com.velocitypowered.proxy.protocol.packet.chat.ObjectComponents;
 import com.velocitypowered.proxy.util.except.QuietRuntimeException;
 import io.netty.buffer.ByteBuf;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +48,7 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
   private static final QuietRuntimeException EXPECTED_AWAITING_REQUEST = new QuietRuntimeException(
       "Expected connection to be awaiting status request");
   private static final int MAX_STATUS_LENGTH = 32767;
-  private static boolean warnedTooLong;
+  private static final AtomicBoolean warnedTooLong = new AtomicBoolean();
 
   private final VelocityServer server;
   private final MinecraftConnection connection;
@@ -139,8 +140,7 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
     }
     final String field = (json.charAt(end - 1) == '{' ? "" : ",") + "\"shard\":" + listing;
     if (json.length() + field.length() > MAX_STATUS_LENGTH) {
-      if (!warnedTooLong) {
-        warnedTooLong = true;
+      if (warnedTooLong.compareAndSet(false, true)) {
         logger.warn("The status response with [shard-client] would pass {} characters, which 1.8 "
             + "clients cannot read: it goes out without it", MAX_STATUS_LENGTH);
       }

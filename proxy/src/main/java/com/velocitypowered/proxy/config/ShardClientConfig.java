@@ -76,6 +76,9 @@ public final class ShardClientConfig {
       errors.add("shard-client must be a table: write it as [shard-client]");
     }
     if (errors.isEmpty()) {
+      if (config.isEnabled()) {
+        logger.info(config.describe());
+      }
       return config;
     }
     errors.forEach(logger::error);
@@ -92,6 +95,10 @@ public final class ShardClientConfig {
     }
     final Asset icon = asset(section, "icon", errors);
     final Asset animations = asset(section, "animations", errors);
+    if (animations != null && motd == null) {
+      errors.add("shard-client: animations-url is only read through %animation:name% in motd, which is "
+          + "missing");
+    }
     return errors.isEmpty() ? new ShardClientConfig(motd, icon, animations) : DISABLED;
   }
 
@@ -146,6 +153,16 @@ public final class ShardClientConfig {
 
   public boolean isEnabled() {
     return json != null;
+  }
+
+  public String describe() {
+    if (!isEnabled()) {
+      return "shard-client: off";
+    }
+    return "shard-client: on for the protocols of legacy-clients, description "
+        + (motd == null ? "none" : motd.length() + " characters")
+        + ", icon " + (icon == null ? "none" : icon.sha256().substring(0, 12))
+        + ", animations " + (animations == null ? "none" : animations.sha256().substring(0, 12));
   }
 
   public @Nullable String getMotd() {

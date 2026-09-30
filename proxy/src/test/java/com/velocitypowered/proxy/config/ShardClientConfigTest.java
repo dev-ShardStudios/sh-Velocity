@@ -75,6 +75,25 @@ class ShardClientConfigTest {
         motd = "x"
         animations-url = "https://dl.shard.rip/a.json"
         """).isEnabled());
+    assertFalse(read("""
+        [shard-client]
+        icon-url = "https://dl.shard.rip/a.png"
+        icon-sha256 = "%s"
+        animations-url = "https://dl.shard.rip/a.json"
+        animations-sha256 = "%s"
+        """.formatted(SHA, SHA)).isEnabled());
+  }
+
+  @Test
+  void describesItselfForTheLog() {
+    assertEquals("shard-client: off", ShardClientConfig.disabled().describe());
+    assertEquals("shard-client: on for the protocols of legacy-clients, description 5 characters, icon "
+        + SHA.toLowerCase().substring(0, 12) + ", animations none", read("""
+        [shard-client]
+        motd = "ꜱʜᴀʀᴅ"
+        icon-url = "https://dl.shard.rip/a.png"
+        icon-sha256 = "%s"
+        """.formatted(SHA)).describe());
   }
 
   @Test
