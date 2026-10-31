@@ -33,7 +33,6 @@ public final class LegacyClientsConfig {
   public static final Map<String, String> DEFAULT_MESSAGES = ImmutableMap.of(
       "no-lobby", "<red>The 1.8.9 lobby is not available right now. Try again in a moment.",
       "server-denied", "<red>This server is not available on 1.8.9.",
-      "modern-denied", "<red>This server can only be joined with Minecraft 1.8.9.",
       "premium-only", "<red>1.8.9 is currently open to premium accounts only."
   );
 
@@ -316,15 +315,13 @@ public final class LegacyClientsConfig {
         + (secretFile == null ? "" : ", BungeeGuard token from " + secretFile);
   }
 
-  public record Messages(Component noLobby, Component serverDenied, Component modernDenied,
-      Component premiumOnly) {
+  public record Messages(Component noLobby, Component serverDenied, Component premiumOnly) {
 
     private static Messages parse(Function<String, String> source) {
       final MiniMessage miniMessage = MiniMessage.miniMessage();
       return new Messages(
           miniMessage.deserialize(source.apply("no-lobby")),
           miniMessage.deserialize(source.apply("server-denied")),
-          miniMessage.deserialize(source.apply("modern-denied")),
           miniMessage.deserialize(source.apply("premium-only")));
     }
   }

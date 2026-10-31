@@ -241,22 +241,24 @@ class LegacyClientsListenerTest {
   }
 
   @Test
-  void modernClientsCannotJoinLegacyServers() throws Exception {
+  void modernClientsCanJoinLegacyServers() throws Exception {
     final Player alex = modern();
     connectedTo(alex, lobby01);
     final ServerPreConnectEvent event = fire(new ServerPreConnectEvent(alex, lobby18901, lobby01));
-    assertFalse(event.getResult().isAllowed());
-    verify(alex).sendMessage(messages.modernDenied());
+    assertTrue(event.getResult().isAllowed());
+    assertEquals(lobby18901, event.getResult().getServer().orElseThrow());
+    verify(alex, never()).sendMessage(any());
     verify(alex, never()).disconnect(any());
   }
 
   @Test
-  void modernClientsSentToALegacyServerOnFirstJoinAreDisconnected() throws Exception {
+  void modernClientsSentToALegacyServerOnFirstJoinGoThere() throws Exception {
     eventManager.unregisterListeners(FakePluginManager.PLUGIN_A);
     final Player alex = modern();
     final ServerPreConnectEvent event = fire(new ServerPreConnectEvent(alex, lobby18901, null));
-    assertFalse(event.getResult().isAllowed());
-    verify(alex).disconnect(messages.modernDenied());
+    assertTrue(event.getResult().isAllowed());
+    assertEquals(lobby18901, event.getResult().getServer().orElseThrow());
+    verify(alex, never()).disconnect(any());
   }
 
   @Test

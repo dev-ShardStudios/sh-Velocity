@@ -72,7 +72,6 @@ class LegacyClientsConfigTest {
         [legacy-clients.messages]
           no-lobby = "<red>The 1.8.9 lobby is not available right now. Try again in a moment."
           server-denied = "<red>This server is not available on 1.8.9."
-          modern-denied = "<red>This server can only be joined with Minecraft 1.8.9."
           premium-only = "<red>1.8.9 is currently open to premium accounts only."
         """.formatted(secretPath());
   }

@@ -89,16 +89,6 @@ public final class LegacyClientsListener {
     final LegacyClientsConfig.Messages messages = settings.getMessages();
 
     if (!settings.admits(player.getProtocolVersion())) {
-      if (settings.isLegacyServer(target)) {
-        event.setResult(ServerResult.denied());
-        if (firstJoin) {
-          player.disconnect(messages.modernDenied());
-        } else {
-          player.sendMessage(messages.modernDenied());
-        }
-        logger.info("legacy-clients: {} denied, {} is reserved to legacy clients",
-            describe(player), target);
-      }
       return;
     }
 
